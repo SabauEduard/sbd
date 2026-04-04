@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "mode": "full",
+  "commit_sha": "b5fff6173dcdaaa2c34fc20437ab06e3b89979f1",
+  "author": "esabau@adobe.com",
+  "timestamp": "2026-04-04T23:11:13+03:00",
+  "detection": {
+    "ai_assisted": true,
+    "method": "editor_hook",
+    "tool": "claude",
+    "model": "",
+    "confidence": 1.0
+  },
+  "stats": {
+    "total_additions": 114,
+    "total_deletions": 0,
+    "ai_additions": 111,
+    "ai_deletions": 0,
+    "human_additions": 3,
+    "human_deletions": 0
+  },
+  "files": {
+    ".env.example": {
+      "ai_additions": 36,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-36",
+      "human_lines": ""
+    },
+    ".gitignore": {
+      "ai_additions": 15,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-5,13,15,18-25",
+      "human_lines": ""
+    },
+    "connect.sh": {
+      "ai_additions": 60,
+      "human_additions": 3,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-60",
+      "human_lines": "61-63"
+    }
+  }
+}
