@@ -1,3 +1,8 @@
+# Environment variables (CONTAINS PASSWORDS - NEVER COMMIT!)
+.env
+.env.*
+!.env.example
+
 # Oracle Database Files
 *.log
 *.trc
@@ -5,10 +10,19 @@
 *.dmp
 *.ora
 
-# Oracle Wallet
+# Oracle Wallet (CONTAINS CREDENTIALS - NEVER COMMIT!)
 wallet/
+Wallet_*.zip
 *.sso
 *.p12
+*.jks
+cwallet.sso
+ewallet.p12
+keystore.jks
+ojdbc.properties
+sqlnet.ora
+tnsnames.ora
+truststore.jks
 
 # Docker volumes
 oracle-data/
