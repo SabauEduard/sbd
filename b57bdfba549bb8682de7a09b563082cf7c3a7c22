@@ -1,0 +1,136 @@
+{
+  "schema_version": "1.0.0",
+  "mode": "full",
+  "commit_sha": "b57bdfba549bb8682de7a09b563082cf7c3a7c22",
+  "author": "esabau@adobe.com",
+  "timestamp": "2026-04-04T22:27:46+03:00",
+  "detection": {
+    "ai_assisted": true,
+    "method": "editor_hook",
+    "tool": "claude",
+    "model": "",
+    "confidence": 1.0
+  },
+  "stats": {
+    "total_additions": 6094,
+    "total_deletions": 0,
+    "ai_additions": 6050,
+    "ai_deletions": 0,
+    "human_additions": 44,
+    "human_deletions": 0
+  },
+  "files": {
+    ".gitignore": {
+      "ai_additions": 44,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-44",
+      "human_lines": ""
+    },
+    "Modalitate notare.pdf": {
+      "ai_additions": 0,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "",
+      "human_lines": ""
+    },
+    "README.md": {
+      "ai_additions": 713,
+      "human_additions": 44,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-713",
+      "human_lines": "714-757"
+    },
+    "docker-compose.yml": {
+      "ai_additions": 40,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-40",
+      "human_lines": ""
+    },
+    "idee.txt": {
+      "ai_additions": 2,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-2",
+      "human_lines": ""
+    },
+    "screenshots/.gitkeep": {
+      "ai_additions": 0,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "",
+      "human_lines": ""
+    },
+    "specs/001-oracle-db-security/checklists/requirements.md": {
+      "ai_additions": 56,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-56",
+      "human_lines": ""
+    },
+    "specs/001-oracle-db-security/data-model.md": {
+      "ai_additions": 790,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-790",
+      "human_lines": ""
+    },
+    "specs/001-oracle-db-security/plan.md": {
+      "ai_additions": 921,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-921",
+      "human_lines": ""
+    },
+    "specs/001-oracle-db-security/quickstart.md": {
+      "ai_additions": 844,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-844",
+      "human_lines": ""
+    },
+    "specs/001-oracle-db-security/research.md": {
+      "ai_additions": 531,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-531",
+      "human_lines": ""
+    },
+    "specs/001-oracle-db-security/spec.md": {
+      "ai_additions": 571,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-571",
+      "human_lines": ""
+    },
+    "specs/001-oracle-db-security/tasks.md": {
+      "ai_additions": 731,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-731",
+      "human_lines": ""
+    },
+    "sql/01-creare_inserare.sql": {
+      "ai_additions": 807,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-807",
+      "human_lines": ""
+    }
+  }
+}
