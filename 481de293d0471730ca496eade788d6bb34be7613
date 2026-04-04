@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0.0",
+  "mode": "full",
+  "commit_sha": "481de293d0471730ca496eade788d6bb34be7613",
+  "author": "esabau@adobe.com",
+  "timestamp": "2026-04-04T23:20:15+03:00",
+  "detection": {
+    "ai_assisted": true,
+    "method": "editor_hook",
+    "tool": "claude",
+    "model": "",
+    "confidence": 1.0
+  },
+  "stats": {
+    "total_additions": 641,
+    "total_deletions": 0,
+    "ai_additions": 641,
+    "ai_deletions": 0,
+    "human_additions": 0,
+    "human_deletions": 0
+  },
+  "files": {
+    "README.md": {
+      "ai_additions": 336,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-336",
+      "human_lines": ""
+    },
+    "sql/02-criptare.sql": {
+      "ai_additions": 305,
+      "human_additions": 0,
+      "ai_deletions": 0,
+      "human_deletions": 0,
+      "ai_lines": "1-305",
+      "human_lines": ""
+    }
+  }
+}
