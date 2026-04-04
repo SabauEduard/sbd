@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  oracle:
+    image: gvenzl/oracle-xe:21-slim
+    platform: linux/amd64  # For ARM Macs (M1/M2/M3) - runs under Rosetta emulation
+    container_name: oracle-banking
+    environment:
+      # Database password
+      ORACLE_PASSWORD: SecurePass123!
+
+      # Simplified - we'll create BANK_SCHEMA manually
+      # APP_USER causes issues on ARM Macs
+    ports:
+      - "1521:1521"  # Oracle SQL*Net
+      - "5500:5500"  # Oracle Enterprise Manager Express
+    volumes:
+      # Mount SQL scripts directory
+      - ./sql:/opt/oracle/scripts/startup
+      # Persist database data
+      - oracle-data:/opt/oracle/oradata
+      # Mount project files for easy access
+      - ./sql:/sql
+      - ./docs:/docs
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    networks:
+      - banking-network
+
+volumes:
+  oracle-data:
+    driver: local
+
+networks:
+  banking-network:
+    driver: bridge

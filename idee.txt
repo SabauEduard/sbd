@@ -1,0 +1,2 @@
+Proiect: Securizarea unei baze de date pentru tranzacții bancare.
+Descriere: Modelarea unei baze de date simple pentru bănci/conturi/tranzacții. Implementarea criptării datelor sensibile (solduri), auditării tranzacțiilor, gestiunii utilizatorilor și a privilegiilor pe roluri, mascarea datelor (conturi).

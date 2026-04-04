@@ -1,0 +1,44 @@
+# Oracle Database Files
+*.log
+*.trc
+*.trm
+*.dmp
+*.ora
+
+# Oracle Wallet
+wallet/
+*.sso
+*.p12
+
+# Docker volumes
+oracle-data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+
+# Screenshots (keep structure, ignore content initially)
+screenshots/**/*.png
+screenshots/**/*.jpg
+!screenshots/.gitkeep
+
+# Compiled files
+*.class
+*.jar
+
+# Documentation temp files
+~$*.docx
+~$*.doc
+*.pdf.tmp
