@@ -23,7 +23,7 @@ Implementation of a comprehensive security framework for a banking transaction d
 
 | Component | Requirements | Points | Status |
 |-----------|--------------|--------|--------|
-| **N1** (Pass) | Req 1, 2, 3, 4, 7 | 4 pts | ⬜ Not Started |
+| **N1** (Pass) | Req 1, 2, 3, 4, 7 | 4 pts | 🔄 In Progress (1/5 done) |
 | **N2** (Higher Grade) | Req 5, 6 | 2 pts | ⬜ Not Started |
 | **N3** (Maximum) | Complexity + Report | 3 pts | ⬜ Not Started |
 | **Oficiu** | Baseline | 1 pt | ✅ Automatic |
@@ -37,68 +37,127 @@ Implementation of a comprehensive security framework for a banking transaction d
 
 ### Prerequisites
 
-- **Docker Desktop** installed and running
+- **Oracle Cloud Account** (Free Tier - no credit card required)
+- **SQLcl** installed (`brew install sqlcl`)
 - **Git** (for version control)
-- **8GB RAM** minimum (Oracle requirement)
+- **macOS/Linux/Windows** (works on ARM Macs!)
 
-### 1. Start Oracle Database
+### 1. Database Connection (Oracle Cloud)
+
+This project uses **Oracle Autonomous Database** on Oracle Cloud Free Tier instead of local Docker. Why? ARM Mac compatibility + real cloud database experience!
+
+**Connection Details**:
+- **Database**: Oracle Autonomous Database 19c
+- **Region**: EU Turin (Italy)
+- **Service**: `bankdb_high` (high performance connection)
+- **Host**: `adb.eu-turin-1.oraclecloud.com`
+- **Port**: 1522 (TCPS - secure)
+- **Wallet Location**: `~/.oracle/wallet/`
+
+### 2. Environment Variables
+
+Copy `.env.example` to `.env` and configure your credentials:
 
 ```bash
-# Navigate to project directory
-cd /Users/esabau/code/facultate/an2sem2/sbd
-
-# Start Oracle container
-docker-compose up -d
-
-# Wait for Oracle to initialize (2-3 minutes)
-docker-compose logs -f oracle
-
-# Look for: "DATABASE IS READY TO USE!"
-# Press Ctrl+C when you see it
+cp .env.example .env
 ```
 
-### 2. Verify Installation
+**Key variables in `.env`**:
+```bash
+# Oracle version
+ORACLE_VERSION=19c
+ORACLE_DATABASE=BANKDB
+
+# Admin user (full control)
+ADMIN_USERNAME=ADMIN
+ADMIN_PASSWORD=SecurePass123!
+
+# Application schema (our main user)
+BANK_SCHEMA_USERNAME=BANK_SCHEMA
+BANK_SCHEMA_PASSWORD=SecurePass123!
+
+# Wallet configuration
+WALLET_PASSWORD=WalletPass123!
+WALLET_LOCATION=~/.oracle/wallet
+TNS_ADMIN=~/.oracle/wallet
+
+# Connection strings
+CONNECTION_STRING_HIGH=bankdb_high
+CONNECTION_STRING_MEDIUM=bankdb_medium
+CONNECTION_STRING_LOW=bankdb_low
+
+# SQLcl path
+SQLCL_PATH=/opt/homebrew/Caskroom/sqlcl/26.1.0.086.1709/sqlcl/bin
+```
+
+⚠️ **Security**: `.env` is git-ignored and contains real passwords. Never commit it!
+
+### 3. Oracle Wallet Setup
+
+The Oracle Wallet contains certificates and connection configuration for secure TCPS access.
+
+**Wallet Structure** (`~/.oracle/wallet/`):
+```
+~/.oracle/wallet/
+├── cwallet.sso       # Auto-login wallet
+├── ewallet.p12       # Encrypted wallet
+├── sqlnet.ora        # SQL*Net configuration
+├── tnsnames.ora      # Connection descriptors
+└── truststore.jks    # Java keystore
+```
+
+**Extract wallet** (if you have `Wallet_BANKDB.zip`):
+```bash
+mkdir -p ~/.oracle/wallet
+unzip -o Wallet_BANKDB.zip -d ~/.oracle/wallet
+chmod 600 ~/.oracle/wallet/*
+```
+
+**Verify wallet**:
+```bash
+export TNS_ADMIN=~/.oracle/wallet
+cat ~/.oracle/wallet/tnsnames.ora | grep bankdb_high
+```
+
+### 4. Test Connection
+
+Use the helper script for easy access:
 
 ```bash
-# Check container status
-docker-compose ps
+# Test connection
+./connect.sh test
 
 # Expected output:
-# NAME              IMAGE                      STATUS         PORTS
-# oracle-banking    gvenzl/oracle-xe:21-slim   Up (healthy)   0.0.0.0:1521->1521/tcp
+# STATUS
+# ----------------
+# Connection OK!
 
-# Test database connection
-docker exec -it oracle-banking sqlplus system/SecurePass123!@XEPDB1 <<< "SELECT 'Connection Successful!' FROM DUAL;"
+# Interactive connection as BANK_SCHEMA
+./connect.sh bank
 
-# Expected output: "Connection Successful!"
+# Interactive connection as ADMIN
+./connect.sh admin
+
+# Run a SQL script
+./connect.sh run sql/01-creare_inserare.sql
 ```
 
-### 3. Create Application Schema
-
+**Direct SQLcl usage**:
 ```bash
-# Connect as SYSDBA and create schema
-docker exec -i oracle-banking sqlplus system/SecurePass123!@XEPDB1 <<EOF
--- Create main schema
-CREATE USER BANK_SCHEMA IDENTIFIED BY SecurePass123!;
+# Export wallet location
+export TNS_ADMIN=~/.oracle/wallet
 
--- Grant necessary privileges
-GRANT CONNECT, RESOURCE TO BANK_SCHEMA;
-GRANT CREATE VIEW, CREATE TRIGGER, CREATE PROCEDURE TO BANK_SCHEMA;
-GRANT CREATE ROLE, CREATE USER TO BANK_SCHEMA;
-GRANT SELECT ON DBA_AUDIT_TRAIL TO BANK_SCHEMA;
-GRANT EXECUTE ON DBMS_FGA TO BANK_SCHEMA;
-GRANT EXECUTE ON DBMS_RLS TO BANK_SCHEMA;
-GRANT EXECUTE ON DBMS_SESSION TO BANK_SCHEMA;
-GRANT EXECUTE ON DBMS_CRYPTO TO BANK_SCHEMA;
+# Connect as BANK_SCHEMA
+sql BANK_SCHEMA/SecurePass123!@bankdb_high
 
--- Grant unlimited tablespace quota
-ALTER USER BANK_SCHEMA QUOTA UNLIMITED ON USERS;
+# Connect as ADMIN
+sql ADMIN/SecurePass123!@bankdb_high
 
--- Verify schema created
-SELECT username, account_status FROM dba_users WHERE username = 'BANK_SCHEMA';
+# Run script from file
+sql BANK_SCHEMA/SecurePass123!@bankdb_high < sql/01-creare_inserare.sql
 
-EXIT
-EOF
+# Run inline query
+echo "SELECT * FROM ACCOUNTS WHERE ROWNUM <= 3;" | sql BANK_SCHEMA/SecurePass123!@bankdb_high
 ```
 
 ---
@@ -149,126 +208,164 @@ sbd/
 
 ---
 
-## 🔧 Docker Management
+## 🔧 Database Management
 
-### Start/Stop Database
+### Connection Helper Script
+
+The `connect.sh` script simplifies database access:
 
 ```bash
-# Start Oracle
-docker-compose up -d
+# Show help
+./connect.sh
 
-# Stop Oracle (keeps data)
-docker-compose down
+# Test connection
+./connect.sh test
 
-# Stop and remove data (clean slate)
-docker-compose down -v
+# Interactive session as BANK_SCHEMA (application user)
+./connect.sh bank
 
-# Restart Oracle
-docker-compose restart
+# Interactive session as ADMIN (database administrator)
+./connect.sh admin
+
+# Run a SQL script as BANK_SCHEMA
+./connect.sh run sql/02-criptare.sql
 ```
 
-### Access Oracle
+### Direct SQLcl Commands
 
 ```bash
-# SQL*Plus as BANK_SCHEMA (our application user)
-docker exec -it oracle-banking sqlplus BANK_SCHEMA/SecurePass123!@XEPDB1
+# Always set wallet location first
+export TNS_ADMIN=~/.oracle/wallet
 
-# SQL*Plus as SYSDBA (database administrator)
-docker exec -it oracle-banking sqlplus system/SecurePass123!@XEPDB1
+# Interactive session
+sql BANK_SCHEMA/SecurePass123!@bankdb_high
 
-# Execute SQL file
-docker exec -i oracle-banking sqlplus BANK_SCHEMA/SecurePass123!@XEPDB1 < sql/01-creare_inserare.sql
+# Run SQL from file
+sql BANK_SCHEMA/SecurePass123!@bankdb_high < sql/01-creare_inserare.sql
 
-# Execute SQL from stdin
-docker exec -i oracle-banking sqlplus BANK_SCHEMA/SecurePass123!@XEPDB1 <<EOF
-SELECT * FROM user_tables;
+# Run inline query
+sql BANK_SCHEMA/SecurePass123!@bankdb_high <<EOF
+SELECT table_name FROM user_tables ORDER BY table_name;
 EXIT
 EOF
+
+# Silent mode (cleaner output)
+echo "SELECT * FROM ACCOUNTS WHERE ROWNUM <= 3;" | sql BANK_SCHEMA/SecurePass123!@bankdb_high
 ```
 
-### View Logs
+### Common Operations
 
 ```bash
-# Follow logs in real-time
-docker-compose logs -f
+# List all tables
+echo "SELECT table_name FROM user_tables ORDER BY table_name;" | sql BANK_SCHEMA/SecurePass123!@bankdb_high
 
-# View last 100 lines
-docker-compose logs --tail=100
+# Count rows in tables
+sql BANK_SCHEMA/SecurePass123!@bankdb_high <<EOF
+SELECT 'ACCOUNTS' AS tbl, COUNT(*) AS rows FROM ACCOUNTS
+UNION ALL SELECT 'TRANSACTIONS', COUNT(*) FROM TRANSACTIONS
+UNION ALL SELECT 'BANKS', COUNT(*) FROM BANKS;
+EXIT
+EOF
 
-# View Oracle alert log
-docker exec -it oracle-banking tail -f /opt/oracle/diag/rdbms/xe/XE/trace/alert_XE.log
+# View table structure
+echo "DESC ACCOUNTS;" | sql BANK_SCHEMA/SecurePass123!@bankdb_high
+
+# Check encryption status
+echo "SELECT table_name, column_name, encryption_alg FROM USER_ENCRYPTED_COLUMNS;" | sql BANK_SCHEMA/SecurePass123!@bankdb_high
 ```
 
-### Container Information
+### Oracle Cloud Console
 
-```bash
-# Check container health
-docker-compose ps
-
-# View resource usage
-docker stats oracle-banking
-
-# Enter container shell
-docker exec -it oracle-banking bash
-
-# Inside container, you can:
-# - cd /sql  (your SQL scripts)
-# - cd /docs (your documentation)
-# - sqlplus BANK_SCHEMA/SecurePass123!@XEPDB1
-```
+Access your database through the web console:
+1. Login: https://cloud.oracle.com
+2. Navigate to: **Oracle Database** → **Autonomous Database**
+3. Select: **BANKDB**
+4. Features: SQL Developer Web, Performance Hub, Database Actions
 
 ---
 
 ## 📚 Implementation Phases
 
-### Phase 1: Foundation (N1 - Requirement 1) 🔴 CRITICAL
-**Status**: ⬜ Not Started  
+### Phase 1: Foundation (N1 - Requirement 1) ✅ COMPLETE
+**Status**: ✅ Complete (Executed: 2026-04-04 23:10)  
 **Effort**: 5 hours  
 **Script**: `sql/01-creare_inserare.sql`
 
 **Objective**: Create normalized banking database schema
 
 **Deliverables**:
-- 9 tables (BANKS, BRANCHES, ACCOUNTS, TRANSACTIONS, DB_USERS, ROLES, ROLE_PRIVS, USER_SESSIONS, AUDIT_LOG)
-- Foreign key constraints
-- Sample data (2 banks, 3 branches, 6 accounts, 10+ transactions)
-- ERD diagram
+- ✅ 9 tables (BANKS, BRANCHES, ACCOUNTS, TRANSACTIONS, DB_USERS, ROLES, ROLE_PRIVS, USER_SESSIONS, AUDIT_LOG)
+- ✅ 8 sequences for auto-increment IDs
+- ✅ 13 performance indexes
+- ✅ 33 constraints (CHECK, FK, PK, UNIQUE)
+- ✅ Sample data (2 banks, 3 branches, 6 accounts, 10+ transactions)
+- ✅ ERD diagram in `specs/001-oracle-db-security/data-model.md`
 
 **Validation**:
 ```bash
-docker exec -i oracle-banking sqlplus BANK_SCHEMA/SecurePass123!@XEPDB1 <<EOF
+export TNS_ADMIN=~/.oracle/wallet
+
+# List all tables
+sql BANK_SCHEMA/SecurePass123!@bankdb_high <<EOF
 SELECT table_name FROM user_tables ORDER BY table_name;
-SELECT 'BANKS', COUNT(*) FROM BANKS UNION ALL
-SELECT 'ACCOUNTS', COUNT(*) FROM ACCOUNTS UNION ALL
-SELECT 'TRANSACTIONS', COUNT(*) FROM TRANSACTIONS;
 EXIT
 EOF
+
+# Count rows
+sql BANK_SCHEMA/SecurePass123!@bankdb_high <<EOF
+SELECT 'BANKS' AS tbl, COUNT(*) AS rows FROM BANKS
+UNION ALL SELECT 'ACCOUNTS', COUNT(*) FROM ACCOUNTS
+UNION ALL SELECT 'TRANSACTIONS', COUNT(*) FROM TRANSACTIONS;
+EXIT
+EOF
+
+# Sample data
+./connect.sh bank
+SELECT * FROM ACCOUNTS WHERE ROWNUM <= 3;
+EXIT;
 ```
 
 ---
 
-### Phase 2: Encryption (N1 - Requirement 2) 🟠 HIGH
-**Status**: ⬜ Not Started  
+### Phase 2: Encryption (N1 - Requirement 2) 🔄 IN PROGRESS
+**Status**: 🔄 Script Generated - Ready to Execute  
 **Effort**: 4 hours  
-**Script**: `sql/02-criptare.sql`
+**Script**: `sql/02-criptare.sql` ✅ Created
 
 **Objective**: Encrypt ACCOUNTS.BALANCE column
 
 **Implementation**:
-- **Primary**: TDE column encryption (if available)
-- **Fallback**: DBMS_CRYPTO triggers (for Oracle XE)
+- **Primary**: TDE column encryption with AES256 (Oracle Autonomous DB supports this)
+- **Fallback**: DBMS_CRYPTO triggers (if TDE unavailable)
+- **Algorithm**: AES256 with SHA256 integrity
+- **Salt**: NO SALT (allows indexes to work on encrypted column)
+
+**Execute**:
+```bash
+./connect.sh run sql/02-criptare.sql
+```
 
 **Validation**:
 ```bash
-docker exec -i oracle-banking sqlplus BANK_SCHEMA/SecurePass123!@XEPDB1 <<EOF
--- Check encryption
-SELECT table_name, column_name, encryption_alg 
-FROM USER_ENCRYPTED_COLUMNS WHERE table_name = 'ACCOUNTS';
+export TNS_ADMIN=~/.oracle/wallet
 
--- Test decryption
-SELECT account_id, balance FROM ACCOUNTS WHERE ROWNUM <= 3;
+# Check encryption status
+sql BANK_SCHEMA/SecurePass123!@bankdb_high <<EOF
+SELECT table_name, column_name, encryption_alg, integrity_alg, salt
+FROM USER_ENCRYPTED_COLUMNS WHERE table_name = 'ACCOUNTS';
 EXIT
 EOF
+
+# Test transparent decryption
+sql BANK_SCHEMA/SecurePass123!@bankdb_high <<EOF
+SELECT account_number, balance FROM ACCOUNTS WHERE ROWNUM <= 3;
+EXIT
+EOF
+
+# Or use helper script
+./connect.sh bank
+SELECT * FROM USER_ENCRYPTED_COLUMNS WHERE table_name = 'ACCOUNTS';
+EXIT;
 ```
 
 ---
@@ -287,13 +384,17 @@ EOF
 
 **Validation**:
 ```bash
-docker exec -i oracle-banking sqlplus system/SecurePass123!@XEPDB1 <<EOF
+export TNS_ADMIN=~/.oracle/wallet
+
+# Check standard auditing
+sql ADMIN/SecurePass123!@bankdb_high <<EOF
 SELECT username, timestamp, action_name FROM DBA_AUDIT_TRAIL WHERE ROWNUM <= 5;
 SELECT db_user, sql_text FROM DBA_FGA_AUDIT_TRAIL WHERE ROWNUM <= 5;
 EXIT
 EOF
 
-docker exec -i oracle-banking sqlplus BANK_SCHEMA/SecurePass123!@XEPDB1 <<EOF
+# Check custom audit log
+sql BANK_SCHEMA/SecurePass123!@bankdb_high <<EOF
 SELECT * FROM AUDIT_LOG ORDER BY audit_timestamp DESC FETCH FIRST 5 ROWS ONLY;
 EXIT
 EOF
@@ -317,7 +418,9 @@ EOF
 
 **Validation**:
 ```bash
-docker exec -i oracle-banking sqlplus system/SecurePass123!@XEPDB1 <<EOF
+export TNS_ADMIN=~/.oracle/wallet
+
+sql ADMIN/SecurePass123!@bankdb_high <<EOF
 SELECT profile, resource_name, limit 
 FROM DBA_PROFILES 
 WHERE profile IN ('TELLER_PROFILE', 'MANAGER_PROFILE', 'AUDITOR_PROFILE')
@@ -356,7 +459,9 @@ AUDITOR_ROLE (read-only)
 
 **Validation**:
 ```bash
-docker exec -i oracle-banking sqlplus system/SecurePass123!@XEPDB1 <<EOF
+export TNS_ADMIN=~/.oracle/wallet
+
+sql ADMIN/SecurePass123!@bankdb_high <<EOF
 SELECT granted_role, grantee 
 FROM DBA_ROLE_PRIVS 
 WHERE granted_role LIKE '%_ROLE'
@@ -387,7 +492,9 @@ EOF
 
 **Validation**:
 ```bash
-docker exec -i oracle-banking sqlplus BANK_SCHEMA/SecurePass123!@XEPDB1 <<EOF
+export TNS_ADMIN=~/.oracle/wallet
+
+sql BANK_SCHEMA/SecurePass123!@bankdb_high <<EOF
 -- Test injection attack (will fail gracefully if protected)
 EXEC GET_ACCOUNT_INFO_VULN('1 OR 1=1');
 
@@ -421,14 +528,16 @@ EOF
 
 **Validation**:
 ```bash
+export TNS_ADMIN=~/.oracle/wallet
+
 # As BANK_SCHEMA (sees unmasked - has privilege)
-docker exec -i oracle-banking sqlplus BANK_SCHEMA/SecurePass123!@XEPDB1 <<EOF
+sql BANK_SCHEMA/SecurePass123!@bankdb_high <<EOF
 SELECT account_id, account_number FROM ACCOUNTS WHERE ROWNUM <= 3;
 EXIT
 EOF
 
 # After granting TELLER_01, test as teller (should see masked)
-docker exec -i oracle-banking sqlplus TELLER_01/SecurePass123!@XEPDB1 <<EOF
+sql TELLER_01/SecurePass123!@bankdb_high <<EOF
 SELECT account_id, account_number FROM BANK_SCHEMA.V_ACCOUNTS_MASKED WHERE ROWNUM <= 3;
 EXIT
 EOF
@@ -451,7 +560,9 @@ EOF
 
 **Validation**:
 ```bash
-docker exec -i oracle-banking sqlplus BANK_SCHEMA/SecurePass123!@XEPDB1 <<EOF
+export TNS_ADMIN=~/.oracle/wallet
+
+sql BANK_SCHEMA/SecurePass123!@bankdb_high <<EOF
 -- Test VPD policy exists
 SELECT object_name, policy_name, policy_type
 FROM USER_POLICIES;
@@ -471,7 +582,9 @@ EOF
 
 ```bash
 # Run comprehensive health check
-docker exec -i oracle-banking sqlplus BANK_SCHEMA/SecurePass123!@XEPDB1 <<EOF
+export TNS_ADMIN=~/.oracle/wallet
+
+sql BANK_SCHEMA/SecurePass123!@bankdb_high <<EOF
 SET LINESIZE 200
 SET PAGESIZE 100
 
@@ -492,9 +605,12 @@ SELECT COUNT(*) AS encrypted_columns FROM USER_ENCRYPTED_COLUMNS;
 PROMPT === AUDIT RECORDS ===
 SELECT COUNT(*) AS audit_records FROM AUDIT_LOG;
 
-PROMPT === ROLES ===
-SELECT COUNT(*) AS role_count FROM DBA_ROLES WHERE role LIKE '%_ROLE';
+EXIT
+EOF
 
+# Check roles (requires ADMIN)
+sql ADMIN/SecurePass123!@bankdb_high <<EOF
+SELECT COUNT(*) AS role_count FROM DBA_ROLES WHERE role LIKE '%_ROLE';
 EXIT
 EOF
 ```
@@ -502,8 +618,10 @@ EOF
 ### End-to-End Test Scenarios
 
 ```bash
+export TNS_ADMIN=~/.oracle/wallet
+
 # Scenario 1: Teller processes transaction
-docker exec -i oracle-banking sqlplus TELLER_01/SecurePass123!@XEPDB1 <<EOF
+sql TELLER_01/SecurePass123!@bankdb_high <<EOF
 -- View accounts (masked)
 SELECT account_number, balance 
 FROM BANK_SCHEMA.V_ACCOUNTS_MASKED 
@@ -528,7 +646,7 @@ EXIT
 EOF
 
 # Scenario 2: Auditor reviews logs
-docker exec -i oracle-banking sqlplus AUDITOR_01/SecurePass123!@XEPDB1 <<EOF
+sql AUDITOR_01/SecurePass123!@bankdb_high <<EOF
 SELECT * FROM BANK_SCHEMA.AUDIT_LOG 
 ORDER BY audit_timestamp DESC 
 FETCH FIRST 10 ROWS ONLY;
@@ -542,17 +660,19 @@ EOF
 
 ### Implementation Checklist
 
-- [ ] **Phase 1**: Database Schema (Requirement 1) - N1
-- [ ] **Phase 2**: Encryption (Requirement 2) - N1
+- [x] **Phase 1**: Database Schema (Requirement 1) - N1 ✅ **COMPLETE**
+- [ ] **Phase 2**: Encryption (Requirement 2) - N1 🔄 Script Generated
 - [ ] **Phase 3**: Auditing (Requirement 3) - N1
 - [ ] **Phase 4**: Identity Management (Requirement 4) - N1
 - [ ] **Phase 7**: Data Masking (Requirement 7) - N1
-- [ ] **Milestone**: N1 Complete → **Grade 5 Achievable**
+- [ ] **Milestone**: N1 Complete → **Grade 5 Achievable** (1/5 done = 20%)
 - [ ] **Phase 5**: Privileges & Roles (Requirement 5) - N2
 - [ ] **Phase 6**: SQL Injection Protection (Requirement 6) - N2
 - [ ] **Milestone**: N2 Complete → **Grade 7 Achievable**
 - [ ] **Phase 8**: Complexity Features - N3
 - [ ] **Milestone**: N3 Complete → **Grade 10 Achievable**
+
+**Current Status**: N1 in progress (20% complete)
 
 ### Deliverables Checklist
 
@@ -572,60 +692,94 @@ EOF
 
 ## 🛠️ Troubleshooting
 
-### Container Issues
-
-```bash
-# Container won't start
-docker-compose down
-docker volume rm sbd_oracle-data
-docker-compose up -d
-
-# Check Docker resources
-# Docker Desktop → Settings → Resources
-# Minimum: 4GB RAM, 2 CPUs, 20GB disk
-```
-
 ### Connection Issues
 
 ```bash
-# Cannot connect to Oracle
-# Wait for full startup (2-3 minutes)
-docker-compose logs -f oracle
-# Look for: "DATABASE IS READY TO USE!"
+# Test basic connection
+./connect.sh test
 
-# Check if port 1521 is available
-lsof -i :1521
+# Check wallet location
+ls -la ~/.oracle/wallet/
 
-# If port in use, edit docker-compose.yml:
-# ports: - "1522:1521"
-# Then connect to port 1522 instead
+# Verify TNS_ADMIN is set
+echo $TNS_ADMIN  # Should show: /Users/esabau/.oracle/wallet
+
+# Check connection strings
+cat ~/.oracle/wallet/tnsnames.ora | grep bankdb
+
+# Try connecting with explicit wallet path
+TNS_ADMIN=~/.oracle/wallet sql BANK_SCHEMA/SecurePass123!@bankdb_high
 ```
 
-### Permission Issues
+### Wallet Issues
 
 ```bash
-# BANK_SCHEMA lacks privileges
-docker exec -i oracle-banking sqlplus system/SecurePass123!@XEPDB1 <<EOF
-GRANT ALL PRIVILEGES TO BANK_SCHEMA;
-GRANT SELECT ANY DICTIONARY TO BANK_SCHEMA;
-EXIT
-EOF
+# If wallet files are missing
+# Re-download from Oracle Cloud Console:
+# 1. Go to https://cloud.oracle.com
+# 2. Navigate to Autonomous Database → BANKDB
+# 3. Click "DB Connection"
+# 4. Download wallet (Wallet_BANKDB.zip)
+# 5. Extract to ~/.oracle/wallet/
+
+unzip -o Wallet_BANKDB.zip -d ~/.oracle/wallet/
+chmod 600 ~/.oracle/wallet/*
 ```
 
-### TDE Not Available
-
-Oracle XE doesn't support TDE. The project will use DBMS_CRYPTO fallback:
-- See `sql/02-criptare.sql` for fallback implementation
-- Uses encryption/decryption triggers
-- Functionally equivalent for academic purposes
-
-### Reset Everything
+### Password Issues
 
 ```bash
-# Nuclear option - start fresh
-docker-compose down -v
-docker-compose up -d
-# Wait for startup, then re-run setup from Step 3
+# If you forget passwords, check .env file
+cat .env | grep PASSWORD
+
+# NEVER commit .env to git!
+# If .env is missing, copy from template:
+cp .env.example .env
+# Then edit with your real passwords
+```
+
+### SQLcl Not Found
+
+```bash
+# Install SQLcl via Homebrew
+brew install sqlcl
+
+# Verify installation
+which sql
+sql -V  # Should show: SQLcl: Release 26.1
+
+# Add to PATH if needed
+export PATH="/opt/homebrew/Caskroom/sqlcl/26.1.0.086.1709/sqlcl/bin:$PATH"
+```
+
+### Permission Denied on Scripts
+
+```bash
+# Make connect.sh executable
+chmod +x connect.sh
+
+# Run directly
+./connect.sh test
+```
+
+### TDE Support
+
+Oracle Autonomous Database **DOES support TDE** (unlike Oracle XE):
+- AES256 encryption available
+- Transparent encryption/decryption
+- No need for DBMS_CRYPTO fallback
+- Wallet-managed encryption keys
+
+### Database Performance
+
+```bash
+# Use different service levels based on workload:
+# - bankdb_high: Maximum performance (parallel queries)
+# - bankdb_medium: Balanced
+# - bankdb_low: Minimum CPU usage
+
+# Switch service in connection string
+sql BANK_SCHEMA/SecurePass123!@bankdb_medium
 ```
 
 ---
@@ -692,23 +846,35 @@ This is an academic project for educational purposes.
 
 ---
 
-**Last Updated**: 2026-04-04  
-**Project Status**: 🟢 Ready for Implementation  
-**Current Phase**: Setup & Planning Complete
+**Last Updated**: 2026-04-04 23:15  
+**Project Status**: 🟡 Phase 1 Complete - Implementation In Progress  
+**Current Phase**: Phase 2 (Encryption)  
+**Database**: 🟢 Oracle Cloud Autonomous Database (OPERATIONAL)
 
 ---
 
 ## 🚀 Next Steps
 
-1. **Start Docker**: `docker-compose up -d`
-2. **Wait for Oracle**: `docker-compose logs -f oracle` (look for "DATABASE IS READY")
-3. **Create Schema**: Run setup from Step 3 above
-4. **Begin Implementation**: Start with Phase 1 (Database Schema)
-5. **Track Progress**: Check off items in Implementation Checklist
+1. ✅ **Setup Complete**: Oracle Cloud database operational
+2. ✅ **Phase 1 Complete**: Schema with sample data loaded
+3. 🔄 **Current Task**: Execute Phase 2 encryption script
+   ```bash
+   ./connect.sh run sql/02-criptare.sql
+   ```
+4. 📸 **Take Screenshots**: For project documentation
+5. **Continue**: Phase 3 (Auditing) → Phase 4 (Identity) → Phase 7 (Masking)
 
-**Estimated Time to Grade 5**: 22 hours (N1 requirements)  
-**Estimated Time to Grade 7**: 30 hours (N1 + N2)  
-**Estimated Time to Grade 10**: 44 hours (Full implementation)
+**Progress**:
+- ✅ N1 Requirement 1 (Schema): **DONE**
+- 🔄 N1 Requirement 2 (Encryption): **Script Ready**
+- ⬜ N1 Requirements 3, 4, 7: **TODO**
+
+**Estimated Time Remaining**:
+- To Grade 5 (Pass): ~17 hours (4 more N1 requirements)
+- To Grade 7: ~25 hours (+ N2 requirements)
+- To Grade 10 (Maximum): ~39 hours (+ N3 complexity)
+
+**Current Grade Projection**: 1 (oficiu only) → Target: 5 (Pass) → Stretch: 10
 
 Good luck! 🎓
 
