@@ -1,0 +1,58 @@
+# Environment variables (CONTAINS PASSWORDS - NEVER COMMIT!)
+.env
+.env.*
+!.env.example
+
+# Oracle Database Files
+*.log
+*.trc
+*.trm
+*.dmp
+*.ora
+
+# Oracle Wallet (CONTAINS CREDENTIALS - NEVER COMMIT!)
+wallet/
+Wallet_*.zip
+*.sso
+*.p12
+*.jks
+cwallet.sso
+ewallet.p12
+keystore.jks
+ojdbc.properties
+sqlnet.ora
+tnsnames.ora
+truststore.jks
+
+# Docker volumes
+oracle-data/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*.old
+
+# Screenshots (keep structure, ignore content initially)
+screenshots/**/*.png
+screenshots/**/*.jpg
+!screenshots/.gitkeep
+
+# Compiled files
+*.class
+*.jar
+
+# Documentation temp files
+~$*.docx
+~$*.doc
+*.pdf.tmp
