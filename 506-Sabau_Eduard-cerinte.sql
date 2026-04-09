@@ -1,46 +1,46 @@
 -- ============================================
--- ORACLE DATABASE SECURITY PROJECT
--- ALL REQUIREMENTS (Phases 2-8)
+-- PROIECT SECURITATE BAZĂ DE DATE ORACLE
+-- TOATE CERINȚELE (Fazele 2-8)
 -- ============================================
 --
 -- Student: Sabău Eduard
 -- Grupă: 506
 -- 
--- This file contains all security requirements:
--- - Phase 2: Data Encryption (TDE)
--- - Phase 3: Database Auditing
--- - Phase 4: Identity Management
--- - Phase 5: Privileges & Roles
--- - Phase 6: Application Security (SQL Injection)
--- - Phase 7: Data Masking
--- - Phase 8: Complexity (VPD)
+-- Acest fișier conține toate cerințele de securitate:
+-- - Faza 2: Criptare Date (TDE)
+-- - Faza 3: Auditare Bază de Date
+-- - Faza 4: Gestiunea Identităților
+-- - Faza 5: Privilegii și Roluri
+-- - Faza 6: Securitate Aplicații (SQL Injection)
+-- - Faza 7: Mascare Date
+-- - Faza 8: Complexitate (VPD)
 -- ============================================
 
 
 -- ============================================
--- START OF PHASE 02
+-- ÎNCEPUT FAZA 02
 -- ============================================
 
 -- ============================================
--- PHASE 2: DATA ENCRYPTION (N1 - Requirement 2)
+-- FAZA 2: CRIPTARE DATE (N1 - Cerința 2)
 -- ============================================
 --
--- Objective: Encrypt the ACCOUNTS.BALANCE column to protect sensitive financial data
+-- Obiectiv: Criptează coloana ACCOUNTS.BALANCE pentru a proteja datele financiare sensibile
 --
--- Grading Impact: N1 Requirement 2 (20% of passing grade)
--- Implementation: Transparent Data Encryption (TDE)
+-- Impact Notare: N1 Cerința 2 (20% of notă de trecere)
+-- Implementare: Criptare Transparentă a Datelor (TDE)
 --
--- Why TDE:
---   - Automatic encryption/decryption (transparent to applications)
---   - No code changes needed for SELECT/INSERT/UPDATE
---   - Encryption at storage level (data files are encrypted)
---   - Better performance than DBMS_CRYPTO
---   - Meets compliance requirements (GDPR, PCI-DSS)
+-- De ce TDE:
+--   - Criptare/decriptare automată (transparent pentru aplicații)
+--   - Nu necesită modificări de cod for SELECT/INSERT/UPDATE
+--   - Criptare la nivel de stocare (fișierele de date sunt criptate)
+--   - Performanță mai bună than DBMS_CRYPTO
+--   - Respectă cerințele de conformitate (GDPR, PCI-DSS)
 --
--- Oracle Autonomous DB automatically selects:
---   - Algorithm: AES 192-bit (default, NSA-approved for TOP SECRET)
---   - Integrity: SHA-1
---   - Salt: YES (automatic)
+-- Oracle Autonomous DB selectează automat:
+--   - Algoritm: AES 192-bit (default, NSA-approved for TOP SECRET)
+--   - Integritate: SHA-1
+--   - Salt: YES (automat)
 -- ============================================
 
 SET ECHO ON
@@ -49,15 +49,15 @@ SET LINESIZE 200
 WHENEVER SQLERROR CONTINUE
 
 -- ============================================
--- 1. PRE-ENCRYPTION STATE
+-- 1. STARE PRE-CRIPTARE
 -- ============================================
 
 PROMPT ========================================
-PROMPT PHASE 2: ACCOUNTS.BALANCE ENCRYPTION
+PROMPT FAZA 2: CRIPTARE ACCOUNTS.BALANCE
 PROMPT ========================================
 PROMPT;
 
-PROMPT Current ACCOUNTS data (BEFORE encryption):
+PROMPT Date curente ACCOUNTS (ÎNAINTE de criptare):
 PROMPT ==========================================
 SELECT
     account_id,
@@ -69,45 +69,45 @@ FROM ACCOUNTS
 ORDER BY account_id;
 
 PROMPT;
-PROMPT Current balance values (plaintext):
+PROMPT Valori curente ale balanței (text clar):
 SELECT account_number, balance FROM ACCOUNTS WHERE ROWNUM <= 3;
 PROMPT;
 
 -- ============================================
--- 2. ENCRYPT BALANCE COLUMN WITH TDE
+-- 2. CRIPTEAZĂ COLOANA BALANCE WITH TDE
 -- ============================================
 
 PROMPT ========================================
-PROMPT Step 1: Encrypting BALANCE column
+PROMPT Step 1: Criptare coloană BALANCE
 PROMPT ========================================
 PROMPT;
-PROMPT Executing: ALTER TABLE ACCOUNTS MODIFY (balance ENCRYPT);
+PROMPT Se execută: ALTER TABLE ACCOUNTS MODIFY (balance ENCRYPT);
 PROMPT;
-PROMPT Oracle will automatically select:
-PROMPT   - Algorithm: AES 192-bit (Autonomous DB default)
-PROMPT   - Integrity: SHA-1
+PROMPT Oracle will automatally select:
+PROMPT   - Algoritm: AES 192-bit (implicit Autonomous DB)
+PROMPT   - Integritate: SHA-1
 PROMPT   - Salt: YES
 PROMPT;
 
 -- Encrypt the balance column using TDE
--- Oracle Autonomous Database automatically chooses encryption parameters
+-- Oracle Autonomous Database automatally chooses encryption parameters
 ALTER TABLE ACCOUNTS MODIFY (balance ENCRYPT);
 
 PROMPT;
-PROMPT ✓ BALANCE column encrypted successfully!
+PROMPT ✓ Coloana BALANCE criptată cu succes!
 PROMPT;
 
 -- ============================================
--- 3. VERIFY ENCRYPTION IS ACTIVE
+-- 3. VERIFICĂ CRIPTAREA ACTIVĂ
 -- ============================================
 
 PROMPT ========================================
-PROMPT Step 2: Verify encryption is active
+PROMPT Pas 2: Verifică criptarea activă
 PROMPT ========================================
 PROMPT;
 
 -- Check encryption status in data dictionary
-PROMPT Checking DBA_ENCRYPTED_COLUMNS view:
+PROMPT Verificare DBA_ENCRYPTED_COLUMNS view:
 SELECT
     table_name,
     column_name,
@@ -118,23 +118,23 @@ FROM USER_ENCRYPTED_COLUMNS
 WHERE table_name = 'ACCOUNTS';
 
 PROMPT;
-PROMPT Expected output:
-PROMPT   - TABLE_NAME: ACCOUNTS
-PROMPT   - COLUMN_NAME: BALANCE
+PROMPT Output așteptat:
+PROMPT   - NUME_TABEL: ACCOUNTS
+PROMPT   - NUME_COLOANĂ: BALANCE
 PROMPT   - ALGORITHM: AES 192 bits key
 PROMPT   - INTEGRITY: SHA-1
 PROMPT   - SALT: YES
 PROMPT;
 
 -- ============================================
--- 4. TEST ENCRYPTED DATA ACCESS
+-- 4. TESTEAZĂ ACCESUL LA DATELE CRIPTATE
 -- ============================================
 
 PROMPT ========================================
-PROMPT Step 3: Test transparent decryption
+PROMPT Pas 3: Testează decriptarea transparentă
 PROMPT ========================================
 PROMPT;
-PROMPT Data is still readable (TDE decrypts automatically for authorized users):
+PROMPT Datele sunt încă lizibile (TDE decrypts automatally for authorized users):
 SELECT
     account_number,
     balance,
@@ -143,33 +143,33 @@ FROM ACCOUNTS
 WHERE ROWNUM <= 3;
 
 PROMPT;
-PROMPT ✓ Authorized users (BANK_SCHEMA) can read decrypted data
+PROMPT ✓ Utilizatori autorizați (BANK_SCHEMA) pot citi datele decriptate
 PROMPT;
 
 -- ============================================
--- 5. DEMONSTRATE ENCRYPTION AT STORAGE LEVEL
+-- 5. DEMONSTREAZĂ CRIPTARE LA NIVEL DE STOCARE
 -- ============================================
 
 PROMPT ========================================
-PROMPT Step 4: Understanding encrypted storage
+PROMPT Step 4: Înțelegerea stocării criptate
 PROMPT ========================================
 PROMPT;
-PROMPT Key Points:
-PROMPT   - Balance values are encrypted in data files on disk
-PROMPT   - SELECT queries return plaintext (transparent decryption)
-PROMPT   - Unauthorized file access shows only encrypted bytes
-PROMPT   - Encryption keys are managed by Oracle Wallet
+PROMPT Puncte cheie:
+PROMPT   - Valorile balanței sunt criptate în fișierele de date pe disc
+PROMPT   - SELECT queries return text clar (transparent decryption)
+PROMPT   - Accesul neautorizat la fișiere arată doar bytes criptați
+PROMPT   - Cheile de criptare sunt gestionate de Oracle Wallet
 PROMPT;
 
 -- ============================================
--- 6. TEST WITH NEW DATA
+-- 6. TESTEAZĂ CU DATE NOI
 -- ============================================
 
 PROMPT ========================================
-PROMPT Step 5: Insert new encrypted data
+PROMPT Step 5: Inserează date noi criptate
 PROMPT ========================================
 PROMPT;
-PROMPT Inserting test account to verify encryption works for new data...
+PROMPT Inserare cont de test to verify encryption works for new data...
 PROMPT;
 
 -- Insert a new account to test encryption
@@ -188,7 +188,7 @@ INSERT INTO ACCOUNTS (
     'RO49TEST0000000000000123',  -- Test IBAN
     1,                            -- Bucharest branch
     'SAVINGS',
-    99999.99,                     -- Test balance (will be encrypted)
+    99999.99,                     -- Balanță test (va fi criptat)
     'RON',
     SYSDATE,
     'ACTIVE',
@@ -197,26 +197,26 @@ INSERT INTO ACCOUNTS (
 
 COMMIT;
 
-PROMPT ✓ Test account inserted with balance 99999.99 RON
+PROMPT ✓ Cont de test inserat with balance 99999.99 RON
 PROMPT;
-PROMPT Verifying new account (data encrypted at storage, decrypted on read):
+PROMPT Verifying new account (data criptat at storage, decrypted on read):
 SELECT
     account_number,
     balance,
-    'Newly inserted, automatically encrypted' AS note
+    'Newly inserted, automatally criptat' AS note
 FROM ACCOUNTS
 WHERE account_number = 'RO49TEST0000000000000123';
 PROMPT;
 
 -- ============================================
--- 7. PERFORMANCE IMPACT CHECK
+-- 7. VERIFICARE IMPACT PERFORMANȚĂ
 -- ============================================
 
 PROMPT ========================================
-PROMPT Step 6: Check index on encrypted column
+PROMPT Step 6: Check index on criptat column
 PROMPT ========================================
 PROMPT;
-PROMPT Indexes on BALANCE column:
+PROMPT Indexuri pe coloana BALANCE:
 SELECT
     index_name,
     table_name,
@@ -225,52 +225,52 @@ FROM USER_IND_COLUMNS
 WHERE table_name = 'ACCOUNTS' AND column_name = 'BALANCE';
 
 PROMPT;
-PROMPT Note: TDE with SALT still allows indexes to function
-PROMPT (Oracle handles this automatically in Autonomous Database)
+PROMPT Note: TDE cu SALT permite în continuare funcționarea indexurilor
+PROMPT (Oracle handles this automatally in Autonomous Database)
 PROMPT;
 
 -- ============================================
--- 8. SECURITY DEMONSTRATION
--- ============================================
-
-PROMPT ========================================
-PROMPT Step 7: Security demonstration
-PROMPT ========================================
-PROMPT;
-PROMPT What is protected:
-PROMPT   ✓ Data files on disk (encrypted bytes)
-PROMPT   ✓ Database backups (encrypted)
-PROMPT   ✓ Export/dump files (encrypted)
-PROMPT   ✓ Protection against OS-level file access
-PROMPT;
-PROMPT What is NOT protected:
-PROMPT   ✗ SQL*Plus/SQLcl output (plaintext for authorized users)
-PROMPT   ✗ Network traffic (use TCPS/SSL for network encryption)
-PROMPT   ✗ Application memory (use with caution in shared environments)
-PROMPT;
-PROMPT Threat model: TDE protects against:
-PROMPT   - Theft of database files
-PROMPT   - Unauthorized backup access
-PROMPT   - Storage media disposal
-PROMPT   - Insider threats with OS access but no DB access
-PROMPT;
-
--- ============================================
--- 9. FINAL VERIFICATION SUMMARY
+-- 8. DEMONSTRAȚIE SECURITATE
 -- ============================================
 
 PROMPT ========================================
-PROMPT Step 8: Final verification
+PROMPT Pas 7: Demonstrație securitate
+PROMPT ========================================
+PROMPT;
+PROMPT Ce este protejat:
+PROMPT   ✓ Fișiere de date pe disc (bytes criptați)
+PROMPT   ✓ Backup-uri bază de date (criptat)
+PROMPT   ✓ Fișiere export/dump (criptat)
+PROMPT   ✓ Protecție împotriva accesului la fișiere la nivel de SO
+PROMPT;
+PROMPT Ce NU este protejat:
+PROMPT   ✗ Output SQL*Plus/SQLcl (text clar for authorized users)
+PROMPT   ✗ Trafic rețea (folosește TCPS/SSL pentru criptare rețea)
+PROMPT   ✗ Memorie aplicație (folosește cu prudență în medii partajate)
+PROMPT;
+PROMPT Model amenințări: TDE protejează împotriva:
+PROMPT   - Furt de fișiere bază de date
+PROMPT   - Acces neautorizat la backup-uri
+PROMPT   - Eliminare suporturi de stocare
+PROMPT   - Amenințări interne cu acces SO dar fără acces BD
+PROMPT;
+
+-- ============================================
+-- 9. REZUMAT VERIFICARE FINALĂ
+-- ============================================
+
+PROMPT ========================================
+PROMPT Step 8: Verificare finală
 PROMPT ========================================
 PROMPT;
 
 -- Count total accounts
-PROMPT Total accounts in database:
+PROMPT Total conturi în baza de date:
 SELECT COUNT(*) AS total_accounts FROM ACCOUNTS;
 PROMPT;
 
--- Show sample of encrypted data (appears as plaintext due to TDE)
-PROMPT Sample account balances (stored encrypted, displayed decrypted):
+-- Show sample of criptat data (appears as text clar due to TDE)
+PROMPT Exemple de balanțe conturi (stored criptat, displayed decrypted):
 SELECT
     account_number,
     TO_CHAR(balance, '999,999.99') AS balance_formatted,
@@ -280,32 +280,32 @@ ORDER BY balance DESC;
 PROMPT;
 
 -- ============================================
--- 10. REQUIREMENT COMPLETION STATUS
+-- 10. STATUS FINALIZARE CERINȚĂ
 -- ============================================
 
 PROMPT ========================================
-PROMPT REQUIREMENT COMPLETION
+PROMPT FINALIZARE CERINȚĂ
 PROMPT ========================================
 PROMPT;
-PROMPT ✅ N1 - Requirement 2: DATA ENCRYPTION - COMPLETE
+PROMPT ✅ N1 - Cerința 2: DATA ENCRYPTION - COMPLETE
 PROMPT;
-PROMPT Deliverables:
-PROMPT   ✓ ACCOUNTS.BALANCE column encrypted with TDE AES 192-bit
-PROMPT   ✓ Transparent encryption/decryption verified
-PROMPT   ✓ Index compatibility verified
-PROMPT   ✓ New data insertion tested and encrypted
-PROMPT   ✓ Security model documented
-PROMPT   ✓ Meets GDPR, PCI-DSS, and banking compliance requirements
+PROMPT Livrabile:
+PROMPT   ✓ ACCOUNTS.BALANCE column criptat with TDE AES 192-bit
+PROMPT   ✓ Criptare/decriptare transparentă verificată
+PROMPT   ✓ Compatibilitate indexuri verificată
+PROMPT   ✓ New data insertion tested and criptat
+PROMPT   ✓ Model de securitate documentat
+PROMPT   ✓ Respectă GDPR, PCI-DSS, and cerințe de conformitate bancară
 PROMPT;
-PROMPT Grade Progress:
-PROMPT   N1: 2/5 requirements complete (40% of passing grade)
-PROMPT   - Requirement 1 (Schema): ✅ DONE
-PROMPT   - Requirement 2 (Encryption): ✅ DONE
-PROMPT   - Requirement 3 (Auditing): ⬜ TODO
-PROMPT   - Requirement 4 (Identity): ⬜ TODO
-PROMPT   - Requirement 7 (Masking): ⬜ TODO
+PROMPT Progres Notă:
+PROMPT   N1: 2/5 cerințe complete (40% of notă de trecere)
+PROMPT   - Cerința 1 (Schema): ✅ DONE
+PROMPT   - Cerința 2 (Encryption): ✅ DONE
+PROMPT   - Cerința 3 (Auditing): ⬜ DE FĂCUT
+PROMPT   - Cerința 4 (Identity): ⬜ DE FĂCUT
+PROMPT   - Cerința 7 (Masking): ⬜ DE FĂCUT
 PROMPT;
-PROMPT Next Phase: Phase 3 - Database Auditing (sql/03-audit.sql)
+PROMPT Faza Următoare: Phase 3 - Database Auditing (sql/03-audit.sql)
 PROMPT;
 
 PROMPT ========================================
@@ -313,7 +313,7 @@ PROMPT SCREENSHOTS FOR DOCUMENTATION
 PROMPT ========================================
 PROMPT;
 PROMPT Required screenshots for project document:
-PROMPT   1. USER_ENCRYPTED_COLUMNS query (shows BALANCE encrypted with AES 192)
+PROMPT   1. USER_ENCRYPTED_COLUMNS query (shows BALANCE criptat with AES 192)
 PROMPT   2. SELECT from ACCOUNTS showing balance values (demonstrates transparent decryption)
 PROMPT   3. This summary showing encryption completion
 PROMPT;
@@ -342,35 +342,35 @@ PROMPT Phase 2 Complete!
 PROMPT ========================================
 
 -- ============================================
--- END OF PHASE 02
+-- SFÂRȘIT FAZA 02
 -- ============================================
 
 
 -- ============================================
--- START OF PHASE 03
+-- ÎNCEPUT FAZA 03
 -- ============================================
 
 -- ============================================
--- PHASE 3: DATABASE AUDITING (N1 - Requirement 3)
+-- PHASE 3: DATABASE AUDITING (N1 - Cerința 3)
 -- ============================================
 --
--- Objective: Implement comprehensive 3-layer audit trail
+-- Obiectiv: Implement comprehensive 3-layer audit trail
 --
--- Grading Impact: N1 Requirement 3 (20% of passing grade)
+-- Impact Notare: N1 Cerința 3 (20% of notă de trecere)
 --
 -- Three Audit Layers:
 --   1. Standard Oracle Auditing - Sessions, DDL, DML on sensitive tables
 --   2. Fine-Grained Auditing (FGA) - BALANCE column access monitoring
 --   3. Custom Triggers - TRANSACTIONS table old/new value logging
 --
--- Why 3 Layers:
+-- De ce 3 Layers:
 --   - Standard Audit: System-level security (who logged in, what they did)
 --   - FGA: Column-level security (who accessed sensitive BALANCE data)
 --   - Custom Triggers: Business-level audit (transaction changes with context)
 --
 -- Compliance:
 --   - GDPR Article 32: Security monitoring and logging
---   - PCI-DSS Requirement 10: Track and monitor all access to cardholder data
+--   - PCI-DSS Cerința 10: Track and monitor all access to cardholder data
 --   - Romanian Banking Regulations: Comprehensive audit trail required
 -- ============================================
 
@@ -401,7 +401,7 @@ PROMPT;
 -- Note: On Autonomous Database, many audit policies are pre-configured
 -- We'll verify what's enabled and add custom policies
 
-PROMPT Checking current unified audit policies...
+PROMPT Verificare current unified audit policies...
 PROMPT;
 
 -- Check if unified auditing is enabled (it is by default on Autonomous DB)
@@ -770,7 +770,7 @@ WHERE account_id = 1001;
 
 COMMIT;
 
-PROMPT ✓ Test balance updated (also encrypted with TDE from Phase 2)
+PROMPT ✓ Balanță test updated (also criptat with TDE from Phase 2)
 PROMPT;
 
 PROMPT Test 4: Query BALANCE column (triggers Layer 2 - FGA)
@@ -830,7 +830,7 @@ PROMPT Note: Standard audit records are in UNIFIED_AUDIT_TRAIL (requires DBA pri
 PROMPT BANK_SCHEMA user does not have access to query this view.
 PROMPT;
 PROMPT Oracle Autonomous Database has Unified Auditing enabled by default.
-PROMPT All DDL, DML, and session activity is automatically audited.
+PROMPT All DDL, DML, and session activity is automatally audited.
 PROMPT;
 PROMPT In production, DBA or AUDITOR role would query:
 PROMPT   SELECT event_timestamp, dbusername, action_name, object_name
@@ -918,16 +918,16 @@ ORDER BY table_name, trigger_name;
 PROMPT;
 
 -- ============================================
--- REQUIREMENT COMPLETION STATUS
+-- STATUS FINALIZARE CERINȚĂ
 -- ============================================
 
 PROMPT ========================================
-PROMPT REQUIREMENT COMPLETION
+PROMPT FINALIZARE CERINȚĂ
 PROMPT ========================================
 PROMPT;
-PROMPT ✅ N1 - Requirement 3: DATABASE AUDITING - COMPLETE
+PROMPT ✅ N1 - Cerința 3: DATABASE AUDITING - COMPLETE
 PROMPT;
-PROMPT Deliverables:
+PROMPT Livrabile:
 PROMPT   ✓ Layer 1: Standard Oracle Auditing (Unified Audit enabled)
 PROMPT   ✓ Layer 2: Fine-Grained Auditing on BALANCE column
 PROMPT   ✓ Layer 3: Custom triggers on TRANSACTIONS and ACCOUNTS tables
@@ -937,18 +937,18 @@ PROMPT   ✓ Audit trail captures: who, what, when, old/new values
 PROMPT;
 PROMPT Compliance:
 PROMPT   ✓ GDPR Article 32: Security monitoring implemented
-PROMPT   ✓ PCI-DSS Requirement 10: Comprehensive audit trail active
+PROMPT   ✓ PCI-DSS Cerința 10: Comprehensive audit trail active
 PROMPT   ✓ Banking Regulations: All financial transactions logged
 PROMPT;
-PROMPT Grade Progress:
-PROMPT   N1: 3/5 requirements complete (60% of passing grade)
-PROMPT   - Requirement 1 (Schema): ✅ DONE
-PROMPT   - Requirement 2 (Encryption): ✅ DONE
-PROMPT   - Requirement 3 (Auditing): ✅ DONE
-PROMPT   - Requirement 4 (Identity): ⬜ TODO
-PROMPT   - Requirement 7 (Masking): ⬜ TODO
+PROMPT Progres Notă:
+PROMPT   N1: 3/5 cerințe complete (60% of notă de trecere)
+PROMPT   - Cerința 1 (Schema): ✅ DONE
+PROMPT   - Cerința 2 (Encryption): ✅ DONE
+PROMPT   - Cerința 3 (Auditing): ✅ DONE
+PROMPT   - Cerința 4 (Identity): ⬜ DE FĂCUT
+PROMPT   - Cerința 7 (Masking): ⬜ DE FĂCUT
 PROMPT;
-PROMPT Next Phase: Phase 4 - Identity Management (sql/04-gestiune_identitati.sql)
+PROMPT Faza Următoare: Phase 4 - Identity Management (sql/04-gestiune_identitati.sql)
 PROMPT;
 
 PROMPT ========================================
@@ -979,23 +979,23 @@ PROMPT All financial data access is now logged for compliance.
 PROMPT;
 
 -- ============================================
--- END OF PHASE 03
+-- SFÂRȘIT FAZA 03
 -- ============================================
 
 
 -- ============================================
--- START OF PHASE 04
+-- ÎNCEPUT FAZA 04
 -- ============================================
 
 -- ============================================
--- PHASE 4: IDENTITY MANAGEMENT (N1 - Requirement 4)
+-- PHASE 4: IDENTITY MANAGEMENT (N1 - Cerința 4)
 -- ============================================
 --
--- Objective: Implement comprehensive identity and resource management
+-- Obiectiv: Implement comprehensive identity and resource management
 --
--- Grading Impact: N1 Requirement 4 (20% of passing grade)
+-- Impact Notare: N1 Cerința 4 (20% of notă de trecere)
 --
--- Deliverables:
+-- Livrabile:
 --   1. User Profiles with Resource Quotas
 --   2. Process-User Matrix (Who can do what)
 --   3. Entity-Process Matrix (What processes access what data)
@@ -1003,7 +1003,7 @@ PROMPT;
 --   5. Password policies and account security
 --   6. Session management and limits
 --
--- Why Identity Management:
+-- De ce Identity Management:
 --   - Least Privilege Principle: Users get only what they need
 --   - Resource Protection: Prevent DoS from runaway queries
 --   - Accountability: Clear mapping of users to capabilities
@@ -1330,12 +1330,12 @@ PROMPT   ✓ Ability to ensure ongoing confidentiality
 PROMPT   ✓ Access controls based on need-to-know
 PROMPT   ✓ Regular review and testing of security measures
 PROMPT;
-PROMPT PCI-DSS Requirement 7 - Restrict Access:
+PROMPT PCI-DSS Cerința 7 - Restrict Access:
 PROMPT   ✓ Limit access to cardholder data by business need-to-know
 PROMPT   ✓ Assign access based on job classification and function
 PROMPT   ✓ Default deny-all setting
 PROMPT;
-PROMPT PCI-DSS Requirement 8 - Identify Users:
+PROMPT PCI-DSS Cerința 8 - Identify Users:
 PROMPT   ✓ Assign unique ID to each user
 PROMPT   ✓ Multi-factor authentication for privileged users (recommended)
 PROMPT   ✓ Strong password policies
@@ -1350,17 +1350,17 @@ PROMPT   ✓ Audit trail of privilege grants (Phase 3)
 PROMPT;
 
 -- ============================================
--- REQUIREMENT COMPLETION STATUS
+-- STATUS FINALIZARE CERINȚĂ
 -- ============================================
 
 PROMPT;
 PROMPT ========================================
-PROMPT REQUIREMENT COMPLETION
+PROMPT FINALIZARE CERINȚĂ
 PROMPT ========================================
 PROMPT;
-PROMPT ✅ N1 - Requirement 4: IDENTITY MANAGEMENT - COMPLETE
+PROMPT ✅ N1 - Cerința 4: IDENTITY MANAGEMENT - COMPLETE
 PROMPT;
-PROMPT Deliverables:
+PROMPT Livrabile:
 PROMPT   ✓ Process-User Matrix documented
 PROMPT   ✓ Entity-Process Matrix documented
 PROMPT   ✓ Entity-User Matrix documented
@@ -1370,15 +1370,15 @@ PROMPT   ✓ Session management policies defined
 PROMPT   ✓ Profile assignments to existing users
 PROMPT   ✓ Compliance requirements mapped
 PROMPT;
-PROMPT Grade Progress:
-PROMPT   N1: 4/5 requirements complete (80% of passing grade)
-PROMPT   - Requirement 1 (Schema): ✅ DONE
-PROMPT   - Requirement 2 (Encryption): ✅ DONE
-PROMPT   - Requirement 3 (Auditing): ✅ DONE
-PROMPT   - Requirement 4 (Identity): ✅ DONE
-PROMPT   - Requirement 7 (Masking): ⬜ TODO
+PROMPT Progres Notă:
+PROMPT   N1: 4/5 cerințe complete (80% of notă de trecere)
+PROMPT   - Cerința 1 (Schema): ✅ DONE
+PROMPT   - Cerința 2 (Encryption): ✅ DONE
+PROMPT   - Cerința 3 (Auditing): ✅ DONE
+PROMPT   - Cerința 4 (Identity): ✅ DONE
+PROMPT   - Cerința 7 (Masking): ⬜ DE FĂCUT
 PROMPT;
-PROMPT Next Phase: Phase 7 - Data Masking (sql/07-mascare_date.sql)
+PROMPT Faza Următoare: Phase 7 - Data Masking (sql/07-mascare_date.sql)
 PROMPT Note: Phase 5 (Privileges/Roles) and Phase 6 (SQL Injection) are N2 requirements
 PROMPT;
 
@@ -1410,23 +1410,23 @@ PROMPT Only 1 more N1 requirement to complete (Data Masking)!
 PROMPT;
 
 -- ============================================
--- END OF PHASE 04
+-- SFÂRȘIT FAZA 04
 -- ============================================
 
 
 -- ============================================
--- START OF PHASE 05
+-- ÎNCEPUT FAZA 05
 -- ============================================
 
 -- ============================================
--- PHASE 5: PRIVILEGES & ROLES (N2 - Requirement 5)
+-- PHASE 5: PRIVILEGES & ROLES (N2 - Cerința 5)
 -- ============================================
 --
--- Objective: Implement Role-Based Access Control (RBAC) with privilege hierarchy
+-- Obiectiv: Implement Role-Based Access Control (RBAC) with privilege hierarchy
 --
--- Grading Impact: N2 Requirement 5 (Higher grade - beyond passing)
+-- Impact Notare: N2 Cerința 5 (Higher grade - beyond passing)
 --
--- Implementation:
+-- Implementare:
 --   1. Populate ROLE_PRIVS table with specific privileges
 --   2. Define role hierarchy (inheritance)
 --   3. Grant table privileges to roles
@@ -1445,7 +1445,7 @@ PROMPT;
 --     ↓
 --   AUDITOR_ROLE (separate branch - read-only)
 --
--- Why RBAC:
+-- De ce RBAC:
 --   - Centralized access management
 --   - Role inheritance (DRY principle)
 --   - Easier privilege auditing
@@ -1899,13 +1899,13 @@ PROMPT PART 11: COMPLIANCE MAPPING
 PROMPT ========================================
 PROMPT;
 
-PROMPT PCI-DSS Requirement 7 - Restrict Access:
+PROMPT PCI-DSS Cerința 7 - Restrict Access:
 PROMPT   ✓ Access based on job classification (6 roles defined)
 PROMPT   ✓ Need-to-know principle (tellers can't view audit logs)
 PROMPT   ✓ Default deny (BASE_EMPLOYEE_ROLE is minimal)
 PROMPT   ✓ Privilege hierarchy (inheritance with escalation)
 PROMPT;
-PROMPT PCI-DSS Requirement 7.1.2 - Privileges Based on Job:
+PROMPT PCI-DSS Cerința 7.1.2 - Privileges Based on Job:
 PROMPT   ✓ TELLER_ROLE: Transaction processing only
 PROMPT   ✓ MANAGER_ROLE: Account management + reporting
 PROMPT   ✓ AUDITOR_ROLE: Read-only access for compliance
@@ -1919,17 +1919,17 @@ PROMPT   ✓ Regular access reviews (via ROLE_PRIVS queries)
 PROMPT;
 
 -- ============================================
--- REQUIREMENT COMPLETION STATUS
+-- STATUS FINALIZARE CERINȚĂ
 -- ============================================
 
 PROMPT;
 PROMPT ========================================
-PROMPT REQUIREMENT COMPLETION
+PROMPT FINALIZARE CERINȚĂ
 PROMPT ========================================
 PROMPT;
-PROMPT ✅ N2 - Requirement 5: PRIVILEGES & ROLES - COMPLETE
+PROMPT ✅ N2 - Cerința 5: PRIVILEGES & ROLES - COMPLETE
 PROMPT;
-PROMPT Deliverables:
+PROMPT Livrabile:
 PROMPT   ✓ 34+ privileges defined in ROLE_PRIVS table
 PROMPT   ✓ Role hierarchy with inheritance (5 levels)
 PROMPT   ✓ AUDITOR_ROLE separate branch (read-only)
@@ -1937,15 +1937,15 @@ PROMPT   ✓ Privilege summaries by role
 PROMPT   ✓ Verification queries (who can do what)
 PROMPT   ✓ Compliance requirements mapped
 PROMPT;
-PROMPT Grade Progress:
-PROMPT   N1: 5/5 requirements complete (100% - Pass achieved!)
-PROMPT   N2: 1/2 requirements complete (50% toward higher grade)
-PROMPT   - Requirement 5 (Privileges & Roles): ✅ DONE
-PROMPT   - Requirement 6 (SQL Injection): ⬜ TODO
+PROMPT Progres Notă:
+PROMPT   N1: 5/5 cerințe complete (100% - Pass achieved!)
+PROMPT   N2: 1/2 cerințe complete (50% toward higher grade)
+PROMPT   - Cerința 5 (Privileges & Roles): ✅ DONE
+PROMPT   - Cerința 6 (SQL Injection): ⬜ DE FĂCUT
 PROMPT;
 PROMPT Current potential grade: Between 5 and 7 (need N2 Req 6 for Grade 7)
 PROMPT;
-PROMPT Next Phase: Phase 6 - SQL Injection Protection (N2 - Requirement 6)
+PROMPT Faza Următoare: Phase 6 - SQL Injection Protection (N2 - Cerința 6)
 PROMPT;
 
 PROMPT ========================================
@@ -1977,30 +1977,30 @@ PROMPT 50% of N2 complete - Continue with Phase 6 for Grade 7!
 PROMPT;
 
 -- ============================================
--- END OF PHASE 05
+-- SFÂRȘIT FAZA 05
 -- ============================================
 
 
 -- ============================================
--- START OF PHASE 06
+-- ÎNCEPUT FAZA 06
 -- ============================================
 
 -- ============================================
--- PHASE 6: SQL INJECTION PROTECTION (N2 - Requirement 6)
+-- PHASE 6: SQL INJECTION PROTECTION (N2 - Cerința 6)
 -- ============================================
 --
--- Objective: Demonstrate SQL injection vulnerability and protection mechanisms
+-- Obiectiv: Demonstrate SQL injection vulnerability and protection mechanisms
 --
--- Grading Impact: N2 Requirement 6 (Higher grade - completes N2)
+-- Impact Notare: N2 Cerința 6 (Higher grade - completes N2)
 --
--- Implementation:
+-- Implementare:
 --   1. Vulnerable procedure (dynamic SQL without sanitization)
 --   2. SQL injection attack demonstration
 --   3. Secure procedure (bind variables)
 --   4. Application context (session variables)
 --   5. Context-validated procedure
 --
--- Why This Matters:
+-- De ce This Matters:
 --   - SQL injection is #3 in OWASP Top 10
 --   - Can bypass all security controls
 --   - Real-world banking applications must prevent this
@@ -2145,7 +2145,7 @@ BEGIN
     v_sql := 'SELECT account_number, balance, customer_name ' ||
              'FROM ACCOUNTS WHERE account_id = ' || p_account_id;
 
-    DBMS_OUTPUT.PUT_LINE('Executing: ' || v_sql);
+    DBMS_OUTPUT.PUT_LINE('Se execută: ' || v_sql);
 
     -- Execute dynamic SQL
     EXECUTE IMMEDIATE v_sql
@@ -2493,7 +2493,7 @@ BEGIN
              'FROM ACCOUNTS WHERE status = ''' ||
              DBMS_ASSERT.ENQUOTE_LITERAL(p_status) || '''';
 
-    DBMS_OUTPUT.PUT_LINE('Executing: ' || v_sql);
+    DBMS_OUTPUT.PUT_LINE('Se execută: ' || v_sql);
 
     OPEN v_cursor FOR v_sql;
 
@@ -2550,7 +2550,7 @@ PROMPT   ✓ SQL Injection prevention demonstrated
 PROMPT   ✓ Bind variables used throughout
 PROMPT   ✓ Input validation with strong typing
 PROMPT;
-PROMPT PCI-DSS Requirement 6.5.1:
+PROMPT PCI-DSS Cerința 6.5.1:
 PROMPT   "Injection flaws, particularly SQL injection"
 PROMPT   ✓ Secure coding practices implemented
 PROMPT   ✓ Vulnerable vs secure code demonstrated
@@ -2563,17 +2563,17 @@ PROMPT   ✓ Branch isolation (data segregation)
 PROMPT;
 
 -- ============================================
--- REQUIREMENT COMPLETION STATUS
+-- STATUS FINALIZARE CERINȚĂ
 -- ============================================
 
 PROMPT;
 PROMPT ========================================
-PROMPT REQUIREMENT COMPLETION
+PROMPT FINALIZARE CERINȚĂ
 PROMPT ========================================
 PROMPT;
-PROMPT ✅ N2 - Requirement 6: SQL INJECTION PROTECTION - COMPLETE
+PROMPT ✅ N2 - Cerința 6: SQL INJECTION PROTECTION - COMPLETE
 PROMPT;
-PROMPT Deliverables:
+PROMPT Livrabile:
 PROMPT   ✓ Vulnerable procedure (demonstrates attack)
 PROMPT   ✓ 5 SQL injection attack scenarios
 PROMPT   ✓ Secure procedure (bind variables)
@@ -2583,16 +2583,16 @@ PROMPT   ✓ DBMS_ASSERT example (sanitization)
 PROMPT   ✓ Best practices documentation
 PROMPT   ✓ Security comparison table
 PROMPT;
-PROMPT Grade Progress:
-PROMPT   N1: 5/5 requirements complete (100% - Pass achieved!)
-PROMPT   N2: 2/2 requirements complete (100% - Grade 7 achievable!)
-PROMPT   - Requirement 5 (Privileges & Roles): ✅ DONE
-PROMPT   - Requirement 6 (SQL Injection): ✅ DONE
-PROMPT   N3: 0/3 requirements complete
+PROMPT Progres Notă:
+PROMPT   N1: 5/5 cerințe complete (100% - Pass achieved!)
+PROMPT   N2: 2/2 cerințe complete (100% - Grade 7 achievable!)
+PROMPT   - Cerința 5 (Privileges & Roles): ✅ DONE
+PROMPT   - Cerința 6 (SQL Injection): ✅ DONE
+PROMPT   N3: 0/3 cerințe complete
 PROMPT;
 PROMPT 🎉 ALL N2 REQUIREMENTS COMPLETE - GRADE 7 ACHIEVABLE!
 PROMPT;
-PROMPT Next Phase: Phase 8 - Complexity Features (N3 - Maximum Grade)
+PROMPT Faza Următoare: Phase 8 - Complexity Features (N3 - Maximum Grade)
 PROMPT;
 
 PROMPT ========================================
@@ -2625,29 +2625,29 @@ PROMPT Grade 7 now achievable with completion of N1 + N2!
 PROMPT;
 
 -- ============================================
--- END OF PHASE 06
+-- SFÂRȘIT FAZA 06
 -- ============================================
 
 
 -- ============================================
--- START OF PHASE 07
+-- ÎNCEPUT FAZA 07
 -- ============================================
 
 -- ============================================
--- PHASE 7: DATA MASKING (N1 - Requirement 7)
+-- PHASE 7: DATA MASKING (N1 - Cerința 7)
 -- ============================================
 --
--- Objective: Mask sensitive account numbers from unauthorized users
+-- Obiectiv: Mask sensitive account numbers from unauthorized users
 --
--- Grading Impact: N1 Requirement 7 (20% of passing grade)
+-- Impact Notare: N1 Cerința 7 (20% of notă de trecere)
 --                  THIS IS THE LAST N1 REQUIREMENT!
 --
--- Implementation:
+-- Implementare:
 --   1. MASK_ACCOUNT_NUMBER function - Masks all but last 4 digits
 --   2. V_ACCOUNTS_MASKED view - Shows masked data to unauthorized users
 --   3. UNMASK_ACCOUNT_ROLE privilege - Allows viewing unmasked data
 --
--- Why Data Masking:
+-- De ce Data Masking:
 --   - PCI-DSS: Mask PAN (Primary Account Number) in displays
 --   - GDPR: Minimize exposure of personal financial data
 --   - Insider threat protection: Tellers don't need full account numbers
@@ -3094,14 +3094,14 @@ PROMPT PART 10: COMPLIANCE MAPPING
 PROMPT ========================================
 PROMPT;
 
-PROMPT PCI-DSS Requirement 3.3:
+PROMPT PCI-DSS Cerința 3.3:
 PROMPT   "Mask PAN when displayed (first six and last four digits max)"
-PROMPT   ✓ Implementation: MASK_ACCOUNT_NUMBER shows last 4 only
+PROMPT   ✓ Implementare: MASK_ACCOUNT_NUMBER shows last 4 only
 PROMPT   ✓ Applied to: All IBAN displays for tellers
 PROMPT;
-PROMPT PCI-DSS Requirement 3.4:
+PROMPT PCI-DSS Cerința 3.4:
 PROMPT   "Render PAN unreadable anywhere it is stored"
-PROMPT   ✓ Phase 2 (Encryption): Balance encrypted with TDE
+PROMPT   ✓ Phase 2 (Encryption): Balance criptat with TDE
 PROMPT   ✓ Phase 7 (Masking): Account numbers masked in displays
 PROMPT;
 PROMPT GDPR Article 5(1)(c) - Data Minimization:
@@ -3116,17 +3116,17 @@ PROMPT   ✓ Pseudonymisation: Masked account numbers (Phase 7)
 PROMPT;
 
 -- ============================================
--- REQUIREMENT COMPLETION STATUS
+-- STATUS FINALIZARE CERINȚĂ
 -- ============================================
 
 PROMPT;
 PROMPT ========================================
-PROMPT REQUIREMENT COMPLETION
+PROMPT FINALIZARE CERINȚĂ
 PROMPT ========================================
 PROMPT;
-PROMPT ✅ N1 - Requirement 7: DATA MASKING - COMPLETE
+PROMPT ✅ N1 - Cerința 7: DATA MASKING - COMPLETE
 PROMPT;
-PROMPT Deliverables:
+PROMPT Livrabile:
 PROMPT   ✓ MASK_ACCOUNT_NUMBER function (mask IBAN)
 PROMPT   ✓ MASK_EMAIL function (mask email addresses)
 PROMPT   ✓ MASK_PHONE function (mask phone numbers)
@@ -3136,17 +3136,17 @@ PROMPT   ✓ Side-by-side comparison (original vs masked)
 PROMPT   ✓ Performance impact analysis
 PROMPT   ✓ Compliance requirements mapped
 PROMPT;
-PROMPT Grade Progress:
-PROMPT   N1: 5/5 requirements complete (100% of passing grade!)
-PROMPT   - Requirement 1 (Schema): ✅ DONE
-PROMPT   - Requirement 2 (Encryption): ✅ DONE
-PROMPT   - Requirement 3 (Auditing): ✅ DONE
-PROMPT   - Requirement 4 (Identity): ✅ DONE
-PROMPT   - Requirement 7 (Masking): ✅ DONE
+PROMPT Progres Notă:
+PROMPT   N1: 5/5 cerințe complete (100% of notă de trecere!)
+PROMPT   - Cerința 1 (Schema): ✅ DONE
+PROMPT   - Cerința 2 (Encryption): ✅ DONE
+PROMPT   - Cerința 3 (Auditing): ✅ DONE
+PROMPT   - Cerința 4 (Identity): ✅ DONE
+PROMPT   - Cerința 7 (Masking): ✅ DONE
 PROMPT;
 PROMPT 🎉 ALL N1 REQUIREMENTS COMPLETE - GRADE 5 (PASS) ACHIEVABLE!
 PROMPT;
-PROMPT Next Phase: Phase 5 - Privileges & Roles (N2 - Higher Grade)
+PROMPT Faza Următoare: Phase 5 - Privileges & Roles (N2 - Higher Grade)
 PROMPT;
 
 PROMPT ========================================
@@ -3177,26 +3177,26 @@ PROMPT 🎯 ALL N1 REQUIREMENTS COMPLETE!
 PROMPT    You can now achieve Grade 5 (Pass)
 PROMPT;
 PROMPT Continue with N2 requirements for higher grades:
-PROMPT   - Phase 5: Privileges & Roles
+PROMPT   - Faza 5: Privilegii și Roluri
 PROMPT   - Phase 6: SQL Injection Protection
 PROMPT;
 
 -- ============================================
--- END OF PHASE 07
+-- SFÂRȘIT FAZA 07
 -- ============================================
 
 
 -- ============================================
--- START OF PHASE 08
+-- ÎNCEPUT FAZA 08
 -- ============================================
 
 -- ============================================
 -- PHASE 8: COMPLEXITY FEATURES (N3 - Optional)
 -- ============================================
 --
--- Objective: Implement advanced security features for maximum grade
+-- Obiectiv: Implement advanced security features for maximum grade
 --
--- Grading Impact: N3 - Complexity (3 points toward Grade 10)
+-- Impact Notare: N3 - Complexity (3 points toward Grade 10)
 --
 -- Advanced Features:
 --   1. Virtual Private Database (VPD) - Row-Level Security
@@ -3205,7 +3205,7 @@ PROMPT;
 --   4. Security Monitoring Dashboard
 --   5. Automated Security Reports
 --
--- Why N3 Complexity:
+-- De ce N3 Complexity:
 --   - Demonstrates advanced Oracle security features
 --   - Real-world enterprise security patterns
 --   - Shows deep understanding of database security
@@ -3244,7 +3244,7 @@ PROMPT ========================================
 PROMPT FEATURE 1: VIRTUAL PRIVATE DATABASE
 PROMPT ========================================
 PROMPT;
-PROMPT VPD automatically filters rows based on user context
+PROMPT VPD automatally filters rows based on user context
 PROMPT Example: Tellers only see accounts from their branch
 PROMPT;
 
@@ -3360,7 +3360,7 @@ ORDER BY account_id;
 
 PROMPT;
 PROMPT ✓ VPD policy working correctly!
-PROMPT   - Tellers see only their branch (automatic filtering)
+PROMPT   - Tellers see only their branch (automat filtering)
 PROMPT   - Managers see everything (no filter applied)
 PROMPT   - Cannot be bypassed (enforced at DB level)
 PROMPT;
@@ -3750,12 +3750,12 @@ SELECT * FROM (
 PROMPT;
 
 -- ============================================
--- REQUIREMENT COMPLETION STATUS
+-- STATUS FINALIZARE CERINȚĂ
 -- ============================================
 
 PROMPT;
 PROMPT ========================================
-PROMPT REQUIREMENT COMPLETION
+PROMPT FINALIZARE CERINȚĂ
 PROMPT ========================================
 PROMPT;
 PROMPT ✅ N3 - COMPLEXITY FEATURES - COMPLETE
@@ -3783,12 +3783,12 @@ PROMPT   - Data masking with 3 masking functions
 PROMPT   - SQL injection protection demonstrated
 PROMPT   - Application context for session validation
 PROMPT;
-PROMPT Grade Progress:
-PROMPT   N1: 5/5 requirements complete (100% ✅)
-PROMPT   N2: 2/2 requirements complete (100% ✅)
+PROMPT Progres Notă:
+PROMPT   N1: 5/5 cerințe complete (100% ✅)
+PROMPT   N2: 2/2 cerințe complete (100% ✅)
 PROMPT   N3: Complexity features implemented ✅
 PROMPT;
-PROMPT 🎉🎉🎉 ALL REQUIREMENTS COMPLETE - GRADE 10 ACHIEVABLE! 🎉🎉🎉
+PROMPT 🎉🎉🎉 TOATE CERINȚELE COMPLETE - GRADE 10 ACHIEVABLE! 🎉🎉🎉
 PROMPT;
 
 PROMPT ========================================
@@ -3811,7 +3811,7 @@ PROMPT Phase 8 Complete!
 PROMPT ========================================
 PROMPT;
 PROMPT Advanced security features implemented:
-PROMPT   - Virtual Private Database (automatic row filtering)
+PROMPT   - Virtual Private Database (automat row filtering)
 PROMPT   - Security monitoring dashboard (real-time metrics)
 PROMPT   - Suspicious activity detection (proactive alerts)
 PROMPT   - Automated security reporting (compliance)
@@ -3824,13 +3824,13 @@ PROMPT FINAL PROJECT SUMMARY
 PROMPT ========================================
 PROMPT;
 PROMPT Phase 1: Database Schema ✅
-PROMPT Phase 2: Data Encryption (TDE) ✅
-PROMPT Phase 3: Database Auditing (3 layers) ✅
-PROMPT Phase 4: Identity Management ✅
-PROMPT Phase 5: Privileges & Roles (RBAC) ✅
+PROMPT Faza 2: Criptare Date (TDE) ✅
+PROMPT Faza 3: Auditare Bază de Date (3 layers) ✅
+PROMPT Faza 4: Gestiunea Identităților ✅
+PROMPT Faza 5: Privilegii și Roluri (RBAC) ✅
 PROMPT Phase 6: SQL Injection Protection ✅
-PROMPT Phase 7: Data Masking ✅
-PROMPT Phase 8: Complexity Features (VPD, Analytics) ✅
+PROMPT Faza 7: Mascare Date ✅
+PROMPT Faza 8: Complexitate Features (VPD, Analytics) ✅
 PROMPT;
 PROMPT Total SQL Scripts: 8
 PROMPT Total Lines of Code: ~3000+
@@ -3841,6 +3841,6 @@ PROMPT Ready for final documentation and presentation!
 PROMPT;
 
 -- ============================================
--- END OF PHASE 08
+-- SFÂRȘIT FAZA 08
 -- ============================================
 

@@ -1,38 +1,38 @@
 -- ============================================
--- BANK SECURITY PROJECT - SCHEMA CREATION
--- Phase 1: Database Schema (N1 - Requirement 1)
+-- PROIECT SECURITATE BAZE DE DATE - CREARE SCHEMA
+-- Faza 1: Schema Bază de Date (N1 - Cerința 1)
 -- ============================================
--- Student: <Your Name>
--- Group: <Your Group>
--- Date: 2026-04-04
--- Requirement: N1 - Requirement 1 (CRITICAL - MANDATORY)
+-- Student: Sabău Eduard
+-- Grupă: 506
+-- Data: 2026-04-04
+-- Cerința: N1 - Cerința 1 (CRITICĂ - OBLIGATORIE)
 -- ============================================
 
--- Set output formatting
+-- Setări formatare output
 SET SERVEROUTPUT ON
 SET LINESIZE 200
 SET PAGESIZE 100
 
 PROMPT ========================================
-PROMPT Starting Schema Creation
+PROMPT Începe Crearea Schemei
 PROMPT ========================================
 
--- Drop existing objects for clean re-runs
+-- Șterge obiectele existente pentru rulări curate
 BEGIN
   FOR t IN (SELECT table_name FROM user_tables ORDER BY table_name DESC) LOOP
     EXECUTE IMMEDIATE 'DROP TABLE ' || t.table_name || ' CASCADE CONSTRAINTS PURGE';
-    DBMS_OUTPUT.PUT_LINE('Dropped table: ' || t.table_name);
+    DBMS_OUTPUT.PUT_LINE('Șters tabel: ' || t.table_name);
   END LOOP;
 
   FOR s IN (SELECT sequence_name FROM user_sequences) LOOP
     EXECUTE IMMEDIATE 'DROP SEQUENCE ' || s.sequence_name;
-    DBMS_OUTPUT.PUT_LINE('Dropped sequence: ' || s.sequence_name);
+    DBMS_OUTPUT.PUT_LINE('Ștearsă secvență: ' || s.sequence_name);
   END LOOP;
 END;
 /
 
 PROMPT ========================================
-PROMPT Creating Sequences
+PROMPT Creează Sequences
 PROMPT ========================================
 
 CREATE SEQUENCE SEQ_BANK_ID START WITH 1 INCREMENT BY 1 NOCACHE;
@@ -44,16 +44,16 @@ CREATE SEQUENCE SEQ_ROLE_ID START WITH 1 INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE SEQ_PRIV_ID START WITH 1 INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE SEQ_SESSION_ID START WITH 1 INCREMENT BY 1 NOCACHE;
 
-PROMPT Sequences created successfully
+PROMPT Secvențe create cu succes
 
 PROMPT ========================================
-PROMPT Creating Tables
+PROMPT Creează Tables
 PROMPT ========================================
 
 -- ============================================
--- Table 1: BANKS
+-- Tabel 1: BANKS
 -- ============================================
-PROMPT Creating BANKS table...
+PROMPT Creează BANKS table...
 
 CREATE TABLE BANKS (
   bank_id NUMBER PRIMARY KEY,
@@ -65,14 +65,14 @@ CREATE TABLE BANKS (
   created_date DATE DEFAULT SYSDATE
 );
 
-COMMENT ON TABLE BANKS IS 'Bank master data and regulatory information';
-COMMENT ON COLUMN BANKS.bank_id IS 'Unique bank identifier';
-COMMENT ON COLUMN BANKS.swift_code IS 'International bank code (BIC format - 8 or 11 characters)';
+COMMENT ON TABLE BANKS IS 'Date master ale băncii și informații de reglementare';
+COMMENT ON COLUMN BANKS.bank_id IS 'Identificator unic al băncii';
+COMMENT ON COLUMN BANKS.swift_code IS 'Cod bancar internațional (BIC format - 8 or 11 characters)';
 
 -- ============================================
--- Table 2: BRANCHES
+-- Tabel 2: BRANCHES
 -- ============================================
-PROMPT Creating BRANCHES table...
+PROMPT Creează BRANCHES table...
 
 CREATE TABLE BRANCHES (
   branch_id NUMBER PRIMARY KEY,
@@ -88,13 +88,13 @@ CREATE TABLE BRANCHES (
   CONSTRAINT CHK_BRANCH_STATUS CHECK (status IN ('ACTIVE', 'INACTIVE'))
 );
 
-COMMENT ON TABLE BRANCHES IS 'Bank branch locations';
-COMMENT ON COLUMN BRANCHES.branch_code IS 'Branch code for routing (unique within bank)';
+COMMENT ON TABLE BRANCHES IS 'Locații sucursale bancare';
+COMMENT ON COLUMN BRANCHES.branch_code IS 'Cod sucursală pentru rutare (unique within bank)';
 
 -- ============================================
--- Table 3: ACCOUNTS
+-- Tabel 3: ACCOUNTS
 -- ============================================
-PROMPT Creating ACCOUNTS table...
+PROMPT Creează ACCOUNTS table...
 
 CREATE TABLE ACCOUNTS (
   account_id NUMBER PRIMARY KEY,
@@ -116,14 +116,14 @@ CREATE TABLE ACCOUNTS (
   CONSTRAINT CHK_ACCOUNT_TYPE CHECK (account_type IN ('CHECKING', 'SAVINGS', 'BUSINESS'))
 );
 
-COMMENT ON TABLE ACCOUNTS IS 'Customer account information - BALANCE WILL BE ENCRYPTED IN PHASE 2';
-COMMENT ON COLUMN ACCOUNTS.balance IS 'Current balance - SENSITIVE DATA - will be encrypted';
-COMMENT ON COLUMN ACCOUNTS.account_number IS 'IBAN format - SENSITIVE DATA - will be masked';
+COMMENT ON TABLE ACCOUNTS IS 'Informații cont client - BALANCE VA FI CRIPTAT ÎN FAZA 2';
+COMMENT ON COLUMN ACCOUNTS.balance IS 'Balanță curentă - DATE SENSIBILE - va fi criptat';
+COMMENT ON COLUMN ACCOUNTS.account_number IS 'Format IBAN - DATE SENSIBILE - va fi mascat';
 
 -- ============================================
--- Table 4: DB_USERS
+-- Tabel 4: DB_USERS
 -- ============================================
-PROMPT Creating DB_USERS table...
+PROMPT Creează DB_USERS table...
 
 CREATE TABLE DB_USERS (
   user_id NUMBER PRIMARY KEY,
@@ -141,13 +141,13 @@ CREATE TABLE DB_USERS (
   CONSTRAINT CHK_USER_STATUS CHECK (status IN ('ACTIVE', 'SUSPENDED', 'TERMINATED'))
 );
 
-COMMENT ON TABLE DB_USERS IS 'Application user metadata (not Oracle users)';
+COMMENT ON TABLE DB_USERS IS 'Metadate utilizatori aplicație (not Oracle users)';
 COMMENT ON COLUMN DB_USERS.department IS 'TELLER, MANAGER, AUDIT, IT';
 
 -- ============================================
--- Table 5: TRANSACTIONS
+-- Tabel 5: TRANSACTIONS
 -- ============================================
-PROMPT Creating TRANSACTIONS table...
+PROMPT Creează TRANSACTIONS table...
 
 CREATE TABLE TRANSACTIONS (
   transaction_id NUMBER PRIMARY KEY,
@@ -175,9 +175,9 @@ COMMENT ON TABLE TRANSACTIONS IS 'Complete transaction history - ALL DML WILL BE
 COMMENT ON COLUMN TRANSACTIONS.reversal_of IS 'References original transaction if this is a reversal';
 
 -- ============================================
--- Table 6: ROLES
+-- Tabel 6: ROLES
 -- ============================================
-PROMPT Creating ROLES table...
+PROMPT Creează ROLES table...
 
 CREATE TABLE ROLES (
   role_id NUMBER PRIMARY KEY,
@@ -192,9 +192,9 @@ COMMENT ON TABLE ROLES IS 'Security roles for RBAC - maps to Oracle roles';
 COMMENT ON COLUMN ROLES.parent_role_id IS 'Role hierarchy - child inherits parent privileges';
 
 -- ============================================
--- Table 7: ROLE_PRIVS
+-- Tabel 7: ROLE_PRIVS
 -- ============================================
-PROMPT Creating ROLE_PRIVS table...
+PROMPT Creează ROLE_PRIVS table...
 
 CREATE TABLE ROLE_PRIVS (
   priv_id NUMBER PRIMARY KEY,
@@ -212,9 +212,9 @@ CREATE TABLE ROLE_PRIVS (
 COMMENT ON TABLE ROLE_PRIVS IS 'Privilege mappings to roles';
 
 -- ============================================
--- Table 8: USER_SESSIONS
+-- Tabel 8: USER_SESSIONS
 -- ============================================
-PROMPT Creating USER_SESSIONS table...
+PROMPT Creează USER_SESSIONS table...
 
 CREATE TABLE USER_SESSIONS (
   session_id NUMBER PRIMARY KEY,
@@ -232,9 +232,9 @@ CREATE TABLE USER_SESSIONS (
 COMMENT ON TABLE USER_SESSIONS IS 'User login sessions - used for application context';
 
 -- ============================================
--- Table 9: AUDIT_LOG
+-- Tabel 9: AUDIT_LOG
 -- ============================================
-PROMPT Creating AUDIT_LOG table...
+PROMPT Creează AUDIT_LOG table...
 
 CREATE TABLE AUDIT_LOG (
   audit_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -254,7 +254,7 @@ CREATE TABLE AUDIT_LOG (
 COMMENT ON TABLE AUDIT_LOG IS 'Custom audit trail - IMMUTABLE (trigger prevents UPDATE/DELETE)';
 
 PROMPT ========================================
-PROMPT Creating Indexes
+PROMPT Creează Indexes
 PROMPT ========================================
 
 -- Performance indexes
